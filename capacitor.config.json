@@ -1,0 +1,6 @@
+{
+  "appId": "com.examguard.app",
+  "appName": "ExamGuard",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}

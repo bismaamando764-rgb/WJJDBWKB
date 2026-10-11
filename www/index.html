@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ExamGuard — Ujian Online Aman</title>
+<style>
+:root{--bg:#f3f6fc;--c:#fff;--t:#14213d;--m:#64708a;--b:#e1e7f2;--p:#2563eb;--r:#dc2626;--g:#16a34a;--w:#d97706;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1426;--c:#18203a;--t:#e8ecf7;--m:#98a3bf;--b:#283152;--p:#6b95ff}}
+:root[data-theme="dark"]{--bg:#0e1426;--c:#18203a;--t:#e8ecf7;--m:#98a3bf;--b:#283152;--p:#6b95ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--c);border-bottom:1px solid var(--b);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.logo{font-weight:800;font-size:17px;display:flex;gap:8px;align-items:center}.logo i{width:26px;height:26px;border-radius:8px;background:var(--p);color:#fff;display:grid;place-items:center;font-style:normal;font-size:15px}
+.sp{flex:1}main{max-width:980px;margin:0 auto;padding:16px}
+.card{background:var(--c);border:1px solid var(--b);border-radius:14px;padding:16px;margin-bottom:14px}
+h2{margin:0 0 10px;font-size:18px}h3{margin:0 0 8px;font-size:15px}.m{color:var(--m);font-size:13px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{border:0;border-radius:10px;padding:8px 14px;background:var(--p);color:#fff;font-weight:600;cursor:pointer}
+button.g{background:transparent;color:var(--t);border:1px solid var(--b)}button.d{background:var(--r)}button.s{padding:5px 10px;font-size:13px}
+input,select,textarea{width:100%;padding:9px 11px;border-radius:10px;border:1px solid var(--b);background:var(--bg);margin:3px 0 8px}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:130px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700;background:var(--b)}
+.ok{background:#16a34a22;color:var(--g)}.bad{background:#dc262622;color:var(--r)}.wn{background:#d9770622;color:var(--w)}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--b);white-space:nowrap}th{color:var(--m);font-size:12px;text-transform:uppercase}
+.opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:var(--bg);color:var(--t);border:1px solid var(--b);margin-bottom:8px;padding:11px 13px}
+.opt.on{border-color:var(--p);background:#2563eb1f}.nav{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.nav button{width:36px;padding:6px 0;background:var(--bg);color:var(--t);border:1px solid var(--b)}.nav .a{background:#16a34a33}.nav .c{outline:2px solid var(--p)}
+.alert{padding:10px 14px;border-radius:10px;background:#dc262620;color:var(--r);font-weight:600;margin-bottom:12px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#111827;color:#fff;padding:10px 16px;border-radius:10px;z-index:9;display:none;max-width:90%}
+.timer{font-variant-numeric:tabular-nums;font-weight:800;font-size:18px}
+</style></head><body>
+<div id="app"></div><div id="toast"></div>
+<script>
+const K='examguard.v4',MAX=3,ROLES={mahasiswa:'Mahasiswa',dosen:'Dosen',pengawas:'Pengawas',admin:'Admin Jurusan',superadmin:'Superadmin'};
+const seed=()=>({users:[{id:1,n:'Andi Pratama',r:'mahasiswa'},{id:2,n:'Sinta Dewi',r:'mahasiswa'},{id:3,n:'Dr. Sari Wulandari',r:'dosen'},{id:4,n:'Pak Budi',r:'pengawas'},{id:5,n:'Admin Jurusan',r:'admin'},{id:6,n:'Superadmin',r:'superadmin'}],
+exams:[{id:1,title:'UTS Dasar Keperawatan (20 Soal)',course:'KEP101',dur:30,on:true,q:[{"t":"pg","q":"Berapa frekuensi nadi normal orang dewasa saat istirahat?","o":["40–50 x/menit","60–100 x/menit","110–130 x/menit","140–160 x/menit","180–200 x/menit"],"k":1,"w":5},{"t":"pg","q":"Alat yang dipakai untuk mengukur tekanan darah disebut…","o":["Termometer","Stetoskop saja","Sfigmomanometer","Oksimeter","Glukometer"],"k":2,"w":5},{"t":"pg","q":"Suhu tubuh normal yang diukur di aksila adalah…","o":["34,0–35,0 °C","36,0–37,5 °C","38,0–39,0 °C","39,5–40,5 °C","32,0–33,5 °C"],"k":1,"w":5},{"t":"pg","q":"Frekuensi napas normal orang dewasa saat istirahat adalah…","o":["6–10 x/menit","12–20 x/menit","25–30 x/menit","30–40 x/menit","40–50 x/menit"],"k":1,"w":5},{"t":"pg","q":"Tekanan darah normal orang dewasa kira-kira…","o":["80/40 mmHg","120/80 mmHg","160/100 mmHg","200/120 mmHg","60/30 mmHg"],"k":1,"w":5},{"t":"pg","q":"Saturasi oksigen (SpO2) normal berada pada rentang…","o":["70–75%","80–85%","95–100%","105–110%","50–60%"],"k":2,"w":5},{"t":"pg","q":"Posisi semi-Fowler adalah posisi…","o":["Berbaring telentang datar","Kepala ditinggikan 30–45°","Berbaring tengkurap","Kepala lebih rendah dari kaki","Miring kiri 90°"],"k":1,"w":5},{"t":"pg","q":"Tujuan utama mencuci tangan bagi tenaga kesehatan adalah…","o":["Menghemat waktu","Mencegah penularan infeksi","Membersihkan kuku saja","Menghaluskan kulit","Menghilangkan bau"],"k":1,"w":5},{"t":"pg","q":"Mencuci tangan dengan sabun dan air mengalir menurut WHO berlangsung sekitar…","o":["5–10 detik","10–15 detik","40–60 detik","5 menit","10 menit"],"k":2,"w":5},{"t":"pg","q":"Alat pelindung diri yang melindungi wajah dari percikan cairan tubuh adalah…","o":["Sarung tangan","Pelindung wajah (face shield)","Sepatu tertutup","Topi bedah saja","Apron plastik saja"],"k":1,"w":5},{"t":"pg","q":"Salah satu prinsip enam benar pemberian obat adalah…","o":["Benar pasien","Benar warna","Benar merek dagang","Benar harga","Benar pabrik"],"k":0,"w":5},{"t":"pg","q":"Satu sendok teh (tsp) setara kira-kira…","o":["1 mL","5 mL","15 mL","30 mL","100 mL"],"k":1,"w":5},{"t":"pg","q":"Urutan tahap proses keperawatan yang benar adalah…","o":["Implementasi–Pengkajian–Evaluasi–Diagnosis–Perencanaan","Pengkajian–Diagnosis–Perencanaan–Implementasi–Evaluasi","Evaluasi–Pengkajian–Implementasi–Diagnosis–Perencanaan","Diagnosis–Evaluasi–Pengkajian–Perencanaan–Implementasi","Perencanaan–Evaluasi–Diagnosis–Pengkajian–Implementasi"],"k":1,"w":5},{"t":"pg","q":"Luka dekubitus paling sering muncul pada…","o":["Area tulang menonjol yang tertekan lama","Telapak tangan","Kelopak mata","Rambut kepala","Ujung hidung"],"k":0,"w":5},{"t":"pg","q":"Untuk mencegah dekubitus pada pasien tirah baring, perawat sebaiknya…","o":["Membiarkan posisi tetap sama","Mengubah posisi secara berkala (± tiap 2 jam)","Memijat kuat area yang kemerahan","Memakai alas tidur yang kusut","Membatasi asupan cairan"],"k":1,"w":5},{"t":"pg","q":"Pada skala nyeri 0–10, nilai 7–10 dikategorikan sebagai…","o":["Tidak nyeri","Nyeri ringan","Nyeri sedang","Nyeri berat","Nyeri hilang"],"k":3,"w":5},{"t":"pg","q":"Contoh cairan infus isotonik adalah…","o":["Aquadest","NaCl 0,9%","NaCl 3%","Dextrose 40%","Dextrose 50%"],"k":1,"w":5},{"t":"pg","q":"Tanda dehidrasi yang tepat adalah…","o":["Turgor kulit baik","Mukosa mulut lembap","Turgor kulit menurun dan mukosa kering","Urin banyak dan encer","Berat badan naik cepat"],"k":2,"w":5},{"t":"esai","q":"Jelaskan prinsip cuci tangan 6 langkah dan mengapa penting dalam pencegahan infeksi.","o":[],"k":null,"w":10},{"t":"esai","q":"Jelaskan urutan langkah pengukuran tanda-tanda vital pada pasien dewasa beserta nilai normalnya.","o":[],"k":null,"w":10}]},{id:2,title:'Kuis Cepat — Waktu per Soal (simulasi)',course:'SIM01',dur:5,on:true,pq:true,q:[
+{t:'pg',q:'Berapa hasil 7 × 8?',o:['54','56','58','48','64'],k:1,w:10,d:0.3},
+{t:'pg',q:'Ibu kota Jawa Barat adalah…',o:['Bandung','Bogor','Bekasi','Cirebon','Depok'],k:0,w:10,d:0.3},
+{t:'pg',q:'Planet terdekat dengan Matahari adalah…',o:['Venus','Bumi','Merkurius','Mars','Jupiter'],k:2,w:10,d:0.3}]}],ses:[]});
+let D;const load=()=>{try{D=JSON.parse(localStorage.getItem(K))}catch(e){}if(!D)D=seed()};load();
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(D))}catch(e){}};
+const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const L='ABCDE',tm=t=>new Date(t).toLocaleTimeString('id-ID'),uname=id=>(D.users.find(u=>u.id==id)||{}).n||'?',ex_=id=>D.exams.find(e=>e.id==id);
+let me=null,run=null,draft={title:'',course:'',dur:30,q:[]},lastW=0,onlyW=false,hasFocus=true,fsFail=false,lost=false,loginErr='',detId=null;
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2800)}
+const cs=()=>run&&D.ses.find(x=>x.id==run.sid);
+
+/* ---------- tampilan ---------- */
+function shell(body){return `<header><div class="logo"><i>🛡</i>ExamGuard</div><div class="sp"></div>${me?`<span class="m">${E(me.n)} · <span class="tag">${ROLES[me.r]}</span></span>${run?'':'<button class="g s" data-a="out">Keluar</button>'}`:''}</header><main>${body}</main>`}
+function vLogin(){return shell(`<div class="card"><h2>Masuk (demo)</h2><p class="m">Pilih akun untuk mencoba tiap peran. Buka dua tab: satu sebagai Mahasiswa mengerjakan ujian, satu sebagai Pengawas untuk melihat pemantauan langsung.</p></div><div class="grid">${D.users.map(u=>`<div class="card"><b>${E(u.n)}</b><div class="m" style="margin:4px 0 10px">${ROLES[u.r]}</div><button data-a="in" data-v="${u.id}">Masuk</button></div>`).join('')}</div>
+<details class="card"><summary><b>Panduan peran</b></summary><p class="m"><b>Mahasiswa</b>: kerjakan ujian dan lihat nilai. <b>Dosen</b>: buat/impor soal, nilai esai, lihat hasil. <b>Pengawas</b>: pantau peserta, heartbeat, warning. <b>Admin Jurusan</b>: kelola pengguna dan rekap. <b>Superadmin</b>: seperti admin ditambah audit pelanggaran seluruh ujian.</p></details><p class="m"><a href="#" data-a="reset" style="color:var(--m)">Reset data demo</a></p>`)}
+
+function vMhs(){const mine=D.ses.filter(s=>s.uid==me.id);
+return shell(`<h2>Portal Ujian</h2><div class="grid">${D.exams.filter(e=>e.on).map(e=>{const s=mine.find(x=>x.eid==e.id);
+return `<div class="card"><h3>${E(e.title)}</h3><div class="m">${E(e.course)} · ${e.dur} menit · ${e.q.length} soal${e.pq?' · waktu per soal':''}</div><div style="margin-top:12px">${!s?`<button data-a="start" data-v="${e.id}">Mulai Ujian</button>`:s.st=='berjalan'?`<button data-a="start" data-v="${e.id}">Lanjutkan</button>`:`<span class="tag ok">Selesai</span> <b>${fin(s)??s.score??'—'}</b> ${s.hasEssay&&fin(s)==null?'<span class="m">nilai PG · esai belum dinilai</span>':''}`}</div></div>`}).join('')||'<p class="m">Belum ada ujian.</p>'}</div>
+<div class="card m"><b>Aturan ujian aman:</b> ujian berjalan fullscreen. Berpindah tab, kehilangan fokus, atau keluar fullscreen dicatat sebagai pelanggaran. ${MAX} pelanggaran = jawaban dikumpulkan otomatis. Jika browser memblokir fullscreen (misalnya di pratinjau tertanam), buka halaman di tab sendiri atau pakai file unduhan; pengawas akan melihat status N/A.</div>`)}
+
+function vRun(){const s=cs(),ex=ex_(s.eid),q=ex.q[run.i];
+const nf=!document.fullscreenElement&&!fsFail,nc=!hasFocus||document.hidden||isSplit(),fsOn=!!document.fullscreenElement,fcOn=!nc;const lo=lost?`<div style="position:fixed;inset:0;background:#0b1220cc;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:30;display:grid;place-items:center;padding:20px"><div class="card" style="max-width:380px;margin:0"><h2>🔌 Login Anda terputus</h2><p>Jawaban Anda tetap tersimpan di perangkat ini. Masukkan password untuk melanjutkan ujian.</p><input id="pw" type="password" placeholder="Password (demo: ujian123)">${loginErr?`<div class="alert">${loginErr}</div>`:''}<button data-a="relogin">Masuk lagi</button></div></div>`:'';
+const ov=(nf||nc)?`<div style="position:fixed;inset:0;background:#0b122080;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);z-index:20;display:grid;place-items:center;padding:20px"><div class="card" style="max-width:420px;text-align:center;margin:0"><h2>🔒 Mode Fokus</h2><p>${nf?'Ujian harus dikerjakan dalam mode layar penuh (fullscreen).':isSplit()?'Layar terbagi (split-screen) terdeteksi. Tutup mode belah layar agar ujian bisa dilanjutkan.':'Jendela ujian kehilangan fokus.'}</p><p class="m">Pelanggaran tercatat: ${s.warn.length}/${MAX}. Soal disembunyikan sampai Anda kembali.</p><button data-a="fs">${nf?'Masuk Fullscreen':'Kembali ke Ujian'}</button></div></div>`:'';
+return shell(`<div class="card row" style="align-items:center"><div><b>${E(ex.title)}</b><div class="m">Pelanggaran: <span class="tag ${s.warn.length?'bad':'ok'}">${s.warn.length}/${MAX}</span></div><div style="margin-top:6px"><span class="tag ${fsOn?'ok':fsFail?'wn':'bad'}">⛶ Fullscreen: ${fsOn?'Aktif':fsFail?'Tidak didukung':'Nonaktif'}</span> <span class="tag ${fcOn?'ok':'bad'}">🔒 Mode Fokus: ${fcOn?'Aktif':'Hilang'}</span> ${fsOn||fsFail?'':'<button class="s" data-a="fs">Masuk Fullscreen</button>'}</div></div><div style="text-align:right;flex:0 0 auto"><div class="timer" id="timer">--:--</div></div></div>
+${ov}${lo}<div id="msg">${s.msg?`<div class="alert">Pesan pengawas: ${E(s.msg)}</div>`:''}</div>
+${s.warn.length?`<div class="alert">Peringatan terakhir: ${E(s.warn[s.warn.length-1].w)}</div>`:''}
+<div class="card"><div class="m">Soal ${run.i+1} dari ${ex.q.length} · bobot ${q.w} ${ex.pq&&q.d?'· sisa waktu soal <b id="qtimer">--:--</b>':''}</div><h3 style="font-size:17px;margin:6px 0 12px">${E(q.q)}</h3>
+${q.t=='pg'?q.o.map((o,j)=>`<button class="opt ${s.ans[run.i]===j?'on':''}" data-a="pick" data-v="${j}"><b>${L[j]}.</b> ${E(o)}</button>`).join(''):`<textarea rows="7" data-ans placeholder="Tulis jawaban esai…">${E(s.ans[run.i]||'')}</textarea>`}
+<div class="nav">${ex.q.map((_,i)=>`<button class="${s.ans[i]!=null&&s.ans[i]!==''?'a':''} ${i==run.i?'c':''}" data-a="go" data-v="${i}">${i+1}</button>`).join('')}</div>
+<div class="row"><button class="g" data-a="go" data-v="${run.i-1}" ${run.i==0||(ex.pq&&q.d)?'disabled':''}>← Sebelumnya</button><button class="g" data-a="go" data-v="${run.i+1}" ${run.i==ex.q.length-1?'disabled':''}>Berikutnya →</button><button class="d" data-a="submit">${run.c?'Yakin? Klik lagi untuk kumpulkan':'Kumpulkan'}</button></div></div><div class="card"><h3>🧪 Simulasi (demo)</h3><p class="m">Picu kejadian yang dicatat sistem, lalu lihat hasilnya di Rincian pelanggaran (akun Dosen):</p><div class="row"><button class="g s" data-a="drop">Putuskan login</button><button class="g s" data-a="simback">Tekan tombol Kembali</button><button class="g s" data-a="simdev">Buka di perangkat lain</button></div></div>`)}
+
+function vDosen(){const mine=D.exams;
+return shell(`<div class="card"><h2>Buat Ujian</h2><div class="row"><div>Judul<input id="dt" value="${E(draft.title)}"></div><div>Kode MK<input id="dc" value="${E(draft.course)}"></div><div>Durasi (menit)<input id="dd" type="number" min="1" value="${draft.dur}"></div></div><label style="display:flex;gap:8px;align-items:center;margin:4px 0 2px"><input id="dp" type="checkbox" style="width:auto;margin:0" ${draft.pq?'checked':''}> Batasi waktu tiap soal</label><p class="m" style="margin:0 0 10px">Mati: mahasiswa hanya dibatasi durasi ujian dan bebas berpindah soal. Hidup: soal terkunci saat durasinya habis (isi durasi tiap soal di form soal).</p>
+<h3>Tambah Soal</h3><div class="row"><div>Tipe<select id="qt"><option value="pg">Pilihan ganda (A–E)</option><option value="esai">Esai</option></select></div><div>Bobot<input id="qw" type="number" value="20"></div><div>Kunci (A–E)<input id="qk" maxlength="1" placeholder="B"></div><div>Durasi soal (mnt, 0=bebas)<input id="qd" type="number" value="0"></div></div>
+Pertanyaan<textarea id="qq" rows="2"></textarea>Pilihan (5 baris, tanpa huruf)<textarea id="qo" rows="5" placeholder="Pilihan A&#10;Pilihan B&#10;Pilihan C&#10;Pilihan D&#10;Pilihan E"></textarea>
+<button class="g" data-a="addq">+ Tambah soal</button>
+${draft.q.length?`<ol>${draft.q.map((q,i)=>`<li>${E(q.q)} <span class="tag">${q.t}</span> <a href="#" data-a="delq" data-v="${i}">hapus</a></li>`).join('')}</ol>`:''}
+<h3 style="margin-top:14px">Impor Soal dari Teks (format template)</h3><textarea id="imp" rows="7" placeholder="1. Ibu kota Indonesia adalah…&#10;A. Bandung&#10;B. (*) Jakarta&#10;C. Medan&#10;D. Surabaya&#10;E. Makassar&#10;Bobot: 20&#10;Durasi: 5&#10;&#10;2. Jelaskan konsep X.&#10;Tipe: Esai&#10;Jawaban: panduan untuk dosen"></textarea><p class="m">Tandai kunci dengan (*) atau baris "Kunci: B". Pilihan ganda wajib 5 pilihan. Baris berawalan # diabaikan.</p><button class="g" data-a="imp">Impor</button>
+<div style="margin-top:12px"><button data-a="saveex">Simpan Ujian</button></div></div>
+<div class="card"><h2>Ujian Saya</h2><div class="tw"><table><tr><th>Judul</th><th>Soal</th><th>Durasi</th><th>Status</th><th></th></tr>${mine.map(e=>`<tr><td>${E(e.title)}</td><td>${e.q.length}</td><td>${e.dur}m · ${e.pq?'waktu per soal':'bebas pindah soal'}</td><td><span class="tag ${e.on?'ok':''}">${e.on?'Aktif':'Nonaktif'}</span></td><td><button class="g s" data-a="tog" data-v="${e.id}">${e.on?'Nonaktifkan':'Aktifkan'}</button> <button class="g s" data-a="delex" data-v="${e.id}">Hapus</button></td></tr>`).join('')}</table></div></div>
+${gradeCard()}<div class="card"><h2>Hasil Ujian</h2>${resTable()}</div>`)}
+
+function parseQ(txt){const out=[];let c=null;const end=()=>{if(c){if(c.t=='pg'&&(c.o.length<5||c.k==null||c.k<0))c.bad=1;out.push(c)}c=null};
+ for(const raw of txt.split('\n')){const l=raw.trim();if(!l||l[0]=='#')continue;
+  let m=c&&l.match(/^([A-E])\.\s*(\(\*\)\s*)?(.*)$/i);if(m){c.o.push(m[3]);if(m[2])c.k=c.o.length-1;continue}
+  m=c&&l.match(/^(kunci|bobot|durasi|tipe|jawaban)\s*:\s*(.*)$/i);
+  if(m){const f=m[1].toLowerCase(),v=m[2].trim();if(f=='kunci')c.k=L.indexOf(v.toUpperCase());else if(f=='bobot')c.w=+v||20;else if(f=='durasi')c.d=+v||0;else if(f=='tipe'){if(/esai/i.test(v))c.t='esai'}else c.g=v;continue}
+  end();c={t:'pg',q:l.replace(/^\d+[.)]\s*/,''),o:[],k:null,w:20,d:0}}
+ end();return out}
+function fin(s){const ex=ex_(s.eid);if(!ex)return null;let tot=0,got=0;for(let i=0;i<ex.q.length;i++){const q=ex.q[i];tot+=q.w;if(q.t=='pg')got+=s.ans[i]===q.k?q.w:0;else{if(s.gr?.[i]==null)return null;got+=s.gr[i]}}return tot?Math.round(got/tot*100):null}
+function gradeCard(){const rows=[];D.ses.filter(s=>s.st=='selesai').forEach(s=>{const ex=ex_(s.eid);if(!ex)return;ex.q.forEach((q,i)=>{if(q.t!='esai')return;rows.push(`<tr><td>${E(uname(s.uid))}<div class="m">${E(ex.title)} · soal ${i+1}</div></td><td style="white-space:normal;min-width:240px">${E(s.ans[i]||'(kosong)')}${q.g?`<div class="m">Panduan: ${E(q.g)}</div>`:''}</td><td><input type="number" min="0" max="${q.w}" style="width:80px" data-gr="${s.id}:${i}" value="${s.gr?.[i]??''}"> / ${q.w}</td></tr>`)})});
+ return `<div class="card"><h2>Penilaian Esai</h2><div class="tw"><table><tr><th>Mahasiswa</th><th>Jawaban</th><th>Skor</th></tr>${rows.join('')||'<tr><td colspan="3" class="m">Belum ada esai untuk dinilai.</td></tr>'}</table></div></div>`}
+function auditCard(){const r=D.ses.flatMap(s=>s.warn.map(w=>({...w,u:uname(s.uid),x:(ex_(s.eid)||{}).title}))).sort((a,b)=>b.t-a.t);
+ return `<div class="card"><h2>Audit Pelanggaran</h2><div class="tw"><table><tr><th>Waktu</th><th>Peserta</th><th>Ujian</th><th>Pelanggaran</th></tr>${r.map(x=>`<tr><td class="m">${tm(x.t)}</td><td>${E(x.u)}</td><td>${E(x.x)}</td><td>${E(x.w)}</td></tr>`).join('')||'<tr><td colspan="4" class="m">Tidak ada pelanggaran.</td></tr>'}</table></div></div>`}
+const KL={app:'Keluar dari aplikasi atau pindah tab',fs:'Keluar dari layar penuh',back:'Menekan tombol Kembali di HP',win:'Pindah ke jendela atau layar terbagi',re:'Koneksi dan buka ulang'};
+function detCard(){const s=D.ses.find(x=>x.id==detId);if(!s)return '';
+ const it=[...s.warn.map(w=>({t:w.t,k:w.k||'app',l:w.w})),...(s.ev||[]).map(w=>({t:w.t,k:w.k,l:w.l}))].sort((a,b)=>a.t-b.t),cnt={};it.forEach(x=>cnt[x.k]=(cnt[x.k]||0)+1);
+ return `<div class="card" style="margin-top:12px"><h3>Rincian pelanggaran — ${E(uname(s.uid))}</h3>${Object.keys(cnt).map(k=>`<span class="tag ${k=='re'?'wn':'bad'}" style="margin:0 6px 6px 0">${KL[k]}: ${cnt[k]}</span>`).join('')}<div class="tw"><table><tr><th>Waktu</th><th>Jenis</th><th>Keterangan</th></tr>${it.map(x=>`<tr><td class="m">${tm(x.t)}</td><td>${KL[x.k]}</td><td>${E(x.l)}</td></tr>`).join('')||'<tr><td colspan="3" class="m">Tidak ada pelanggaran tercatat.</td></tr>'}</table></div>${s.st=='selesai'&&s.note?`<p class="m">Terkirim ${tm(s.t1||s.hb)}: ${E(s.note)}</p>`:''}</div>`}
+function resTable(){return `<div class="tw"><table><tr><th>Mahasiswa</th><th>Ujian</th><th>Status</th><th>Nilai PG</th><th>Nilai Akhir</th><th>Pelanggaran</th><th></th></tr>${D.ses.map(s=>`<tr><td>${E(uname(s.uid))}</td><td>${E((ex_(s.eid)||{}).title)}</td><td>${s.st}</td><td>${s.score??'—'}</td><td>${fin(s)??'menunggu esai'}</td><td>${s.warn.length}</td><td><button class="g s" data-a="det" data-v="${s.id}">Rincian</button></td></tr>`).join('')||'<tr><td colspan="7" class="m">Belum ada data.</td></tr>'}</table></div>${detCard()}`}
+
+function vPengawas(){const now=Date.now(),list=D.ses.filter(s=>!onlyW||s.warn.length);
+return shell(`<div class="card"><h2>Monitoring Real-time</h2><label class="m"><input type="checkbox" data-a="fw" ${onlyW?'checked':''} style="width:auto;margin:0 6px 0 0">Hanya yang punya warning</label>
+<div class="tw"><table><tr><th>Peserta</th><th>Ujian</th><th>Status</th><th>Heartbeat</th><th>Progres</th><th>Fullscreen</th><th>Fokus</th><th>Warning</th><th>Terakhir</th><th></th></tr>${list.map(s=>{const ex=ex_(s.eid)||{q:[]},on=s.st=='berjalan'&&now-s.hb<15000,n=Object.values(s.ans).filter(v=>v!=='').length,lw=s.warn[s.warn.length-1];
+return `<tr><td>${E(uname(s.uid))}</td><td>${E(ex.title)}</td><td><span class="tag ${s.st!='berjalan'?'':on?'ok':'bad'}">${s.st!='berjalan'?'Selesai':on?'Online':'Terputus'}</span></td><td class="m">${tm(s.hb)}</td><td>${n}/${ex.q.length}</td><td>${s.st!='berjalan'?'—':s.fsx?'<span class="tag wn">N/A</span>':`<span class="tag ${s.fs?'ok':'bad'}">${s.fs?'Aktif':'Keluar'}</span>`}</td><td>${s.st!='berjalan'?'—':`<span class="tag ${s.fc!==false?'ok':'bad'}">${s.fc!==false?'Fokus':'Hilang'}</span>`}</td><td><span class="tag ${s.warn.length?'bad':'ok'}">${s.warn.length}</span></td><td class="m">${lw?E(lw.w):'—'}</td><td>${s.st=='berjalan'?`<button class="s" data-a="ping" data-v="${s.id}">Peringatkan</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="10" class="m">Belum ada peserta.</td></tr>'}</table></div></div>`)}
+
+function vAdmin(){return shell(`<div class="card"><h2>Kelola Pengguna</h2><div class="row"><div>Nama<input id="un"></div><div>Peran<select id="ur">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div></div><button data-a="adduser">Tambah</button></div>
+<div class="card"><div class="tw"><table><tr><th>Nama</th><th>Peran</th><th></th></tr>${D.users.map(u=>`<tr><td>${E(u.n)}</td><td>${ROLES[u.r]}</td><td><button class="g s" data-a="deluser" data-v="${u.id}">Hapus</button></td></tr>`).join('')}</table></div></div>
+<div class="card"><h2>Rekap Seluruh Ujian</h2>${resTable()}</div>${me.r=='superadmin'?auditCard():''}`)}
+
+function render(){const f=document.activeElement;const v=!me?vLogin():run?vRun():({mahasiswa:vMhs,dosen:vDosen,pengawas:vPengawas,admin:vAdmin,superadmin:vAdmin})[me.r]();$('#app').innerHTML=v;tick()}
+
+/* ---------- logika ujian aman ---------- */
+function warn(why,k){const s=cs();if(!s||s.st!='berjalan'||Date.now()-lastW<1500)return;lastW=Date.now();s.warn.push({w:why,t:Date.now(),k:k||'app'});save();
+ if(s.warn.length>=MAX)finish('Dikumpulkan otomatis: pelanggaran melebihi batas');else{toast('⚠ Pelanggaran '+s.warn.length+'/'+MAX+': '+why);render()}}
+document.addEventListener('visibilitychange',()=>{document.hidden&&warn('Berpindah tab/aplikasi');mark();if(run)render()});
+addEventListener('blur',()=>{hasFocus=false;warn('Kehilangan fokus jendela');mark();if(run)render()});addEventListener('focus',()=>{hasFocus=true;mark();if(run)render()});
+document.addEventListener('fullscreenchange',()=>{!document.fullscreenElement&&warn('Keluar dari fullscreen','fs');mark();if(run)render()});
+addEventListener('resize',()=>{if(!run)return;const sp=isSplit();if(sp)warn('Layar terbagi / ukuran jendela berubah (split-screen)','win');if(sp!==lastSp){lastSp=sp;mark();render()}});
+addEventListener('beforeunload',e=>{if(run){e.preventDefault();e.returnValue=''}});
+addEventListener('popstate',()=>{if(run){try{history.pushState(null,'')}catch(x){}warn('Menekan tombol Kembali di HP','back')}});
+document.addEventListener('contextmenu',e=>run&&e.preventDefault());
+['copy','cut','paste'].forEach(t=>document.addEventListener(t,e=>run&&e.preventDefault()));
+function finish(note){const s=cs();if(!s)return;const ex=ex_(s.eid),pg=ex.q.map((q,i)=>[q,i]).filter(([q])=>q.t=='pg'),tot=pg.reduce((a,[q])=>a+q.w,0),got=pg.reduce((a,[q,i])=>a+(s.ans[i]===q.k?q.w:0),0);
+ s.score=tot?Math.round(got/tot*100):null;s.hasEssay=ex.q.some(q=>q.t=='esai');s.st='selesai';s.note=note||'';s.t1=Date.now();lost=false;run=null;save();try{document.fullscreenElement&&document.exitFullscreen()}catch(e){}toast(note||'Jawaban terkirim');render()}
+function isSplit(){return matchMedia('(pointer:coarse)').matches&&innerWidth<screen.width*0.85}
+let lastSp=false;
+function mark(){const s=cs();if(s&&s.st=='berjalan'){s.fs=!!document.fullscreenElement;s.fc=hasFocus&&!document.hidden&&!isSplit();s.fsx=fsFail;s.hb=Date.now();save()}}
+function enterFs(){const el=document.documentElement;if(!el.requestFullscreen){fsFail=true;return}return el.requestFullscreen().then(()=>{fsFail=false}).catch(()=>{fsFail=true}).finally(()=>{mark();if(run)render()})}
+let tk=0;function tick(){const s=cs();if(!s||s.st!='berjalan')return;const ex=ex_(s.eid),left=ex.dur*60000-(Date.now()-s.t0);
+ if(left<=0)return finish('Waktu habis, jawaban dikumpulkan otomatis');const el=$('#timer');if(el){const m=Math.floor(left/60000),sec=Math.floor(left/1000)%60;el.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');el.style.color=left<60000?'var(--r)':''}const q=ex.q[run.i];if(q&&ex.pq&&q.d){const ql=q.d*60000-(Date.now()-(s.qs||s.t0)),qe=$('#qtimer');if(ql<=0){if(run.i<ex.q.length-1){run.i++;s.qs=Date.now();save();toast('Waktu soal habis, pindah ke soal berikutnya');render()}else finish('Waktu soal terakhir habis, jawaban dikumpulkan')}else if(qe)qe.textContent=String(Math.floor(ql/60000)).padStart(2,'0')+':'+String(Math.floor(ql/1000)%60).padStart(2,'0')}}
+setInterval(()=>{tick();if(++tk%5==0)mark();
+ if(me&&me.r=='pengawas'&&tk%3==0){load();render()}},1000);
+addEventListener('storage',e=>{if(e.key!=K||!e.newValue)return;try{D=JSON.parse(e.newValue)}catch(x){return}
+ if(run){const s=cs(),m=$('#msg');if(s&&m)m.innerHTML=s.msg?`<div class="alert">Pesan pengawas: ${E(s.msg)}</div>`:''}else if(me&&me.r=='pengawas')render()});
+
+/* ---------- aksi ---------- */
+const val=id=>($(id)||{}).value||'';
+function sync(){if($('#dt')){draft.title=val('#dt');draft.course=val('#dc');draft.dur=+val('#dd')||30;draft.pq=!!($('#dp')&&$('#dp').checked)}}
+const A={
+ in(v){me=D.users.find(u=>u.id==v);render()},out(){me=null;render()},reset(){D=seed();save();me=null;render()},
+ start(v){const ex=ex_(+v);let s=D.ses.find(x=>x.eid==ex.id&&x.uid==me.id);
+  const was=!!s;if(!s){s={id:Date.now(),eid:ex.id,uid:me.id,ans:{},warn:[],hb:Date.now(),st:'berjalan',t0:Date.now(),qs:Date.now(),score:null,msg:''};D.ses.push(s);save()}
+  if(s.st!='berjalan')return;if(was){(s.ev=s.ev||[]).push({t:Date.now(),k:'re',l:'Ujian dibuka ulang'});save()}try{history.pushState(null,'')}catch(x){}run={sid:s.id,i:0};hasFocus=true;enterFs();mark();render()},
+ pick(v){const s=cs();run.c=false;s.ans[run.i]=+v;save();render()},go(v){const ex=ex_(cs().eid);if(+v<0||+v>=ex.q.length)return;if(+v<run.i&&ex.pq&&ex.q[run.i].d)return toast('Soal bertimer tidak bisa kembali ke soal sebelumnya');run.i=+v;run.c=false;cs().qs=Date.now();save();render()},
+ submit(){if(run.c)finish('Jawaban terkirim');else{run.c=true;render();toast('Klik Kumpulkan sekali lagi untuk konfirmasi')}},
+ fs(){hasFocus=true;try{window.focus()}catch(e){}enterFs();mark();render()},drop(){const s=cs();if(!s)return;lost=true;loginErr='';(s.ev=s.ev||[]).push({t:Date.now(),k:'re',l:'Login terputus saat ujian'});save();render()},
+ relogin(){const s=cs();if(!s)return;if(val('#pw')==='ujian123'){lost=false;loginErr='';(s.ev=s.ev||[]).push({t:Date.now(),k:'re',l:'Masuk kembali, jawaban dilanjutkan'});save();toast('Berhasil masuk, jawaban dilanjutkan')}else loginErr='Login gagal. Coba lagi.';render()},
+ det(v){detId=detId==+v?null:+v;render()},simback(){warn('Menekan tombol Kembali di HP','back')},
+ simdev(){const s=cs();if(!s)return;(s.ev=s.ev||[]).push({t:Date.now(),k:'re',l:'Ujian dibuka di perangkat lain'});save();toast('Tercatat: ujian dibuka di perangkat lain')},
+ fw(){onlyW=!onlyW;render()},ping(v){const s=D.ses.find(x=>x.id==+v);s.msg='Harap fokus pada layar ujian.';save();toast('Peringatan dikirim ke '+uname(s.uid))},
+ addq(){sync();const t=val('#qt'),q=val('#qq').trim(),w=+val('#qw')||20,d=+val('#qd')||0;if(!q)return toast('Pertanyaan wajib diisi');
+  if(t=='esai'){draft.q.push({t,q,o:[],k:null,w,d})}else{const o=val('#qo').split('\n').map(x=>x.trim()).filter(Boolean),k=L.indexOf(val('#qk').toUpperCase());
+   if(o.length<5)return toast('Pilihan ganda wajib 5 pilihan (A–E)');if(k<0)return toast('Isi kunci jawaban A–E');draft.q.push({t,q,o:o.slice(0,5),k,w,d})}
+  render()},
+ delq(v){sync();draft.q.splice(+v,1);render()},
+ imp(){sync();const r=parseQ(val('#imp')),ok=r.filter(x=>!x.bad);draft.q.push(...ok);toast(ok.length+' soal diimpor'+(r.length>ok.length?', '+(r.length-ok.length)+' dilewati (cek 5 pilihan & kunci)':''));render()},
+ saveex(){sync();if(!draft.title||!draft.q.length)return toast('Isi judul dan minimal 1 soal');D.exams.push({id:Date.now(),title:draft.title,course:draft.course,dur:draft.dur,on:true,pq:draft.pq,q:draft.q});save();draft={title:'',course:'',dur:30,q:[],pq:false};toast('Ujian disimpan');render()},
+ tog(v){const e=ex_(+v);e.on=!e.on;save();render()},delex(v){D.exams=D.exams.filter(e=>e.id!=+v);save();render()},
+ adduser(){const n=val('#un').trim();if(!n)return;D.users.push({id:Date.now(),n,r:val('#ur')});save();render()},deluser(v){D.users=D.users.filter(u=>u.id!=+v);save();render()}
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;if(b.tagName=='A')e.preventDefault();A[b.dataset.a]?.(b.dataset.v)});
+document.addEventListener('input',e=>{if(e.target.matches('[data-ans]')){const s=cs();s.ans[run.i]=e.target.value;save()}});
+document.addEventListener('change',e=>{const g=e.target.dataset&&e.target.dataset.gr;if(!g)return;const[sid,i]=g.split(':'),s=D.ses.find(x=>x.id==sid),q=ex_(s.eid).q[i];s.gr=s.gr||{};s.gr[i]=Math.max(0,Math.min(q.w,+e.target.value||0));save();render()});
+render();
+</script></body></html>
